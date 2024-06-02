@@ -1,22 +1,14 @@
-import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.transforms as transforms
-from torchvision.utils import save_image
-from dataset import load_dataset
 from models import (
     Generator,
     Discriminator,
     add_spectral_normalization,
     weights_init_normal,
 )
-from utils import get_device
-
-
-dataset_path = "dataset"
-results_path = "results"
-os.makedirs(f"{results_path}/images", exist_ok=True)
+from utils import load_dataset, get_device, save_batch_images
 
 
 lr = 2e-4
@@ -35,9 +27,7 @@ transform = transforms.Compose(
     ]
 )
 
-data_loader = load_dataset(
-    dataset_path=dataset_path, transform=transform, batch_size=batch_size
-)
+data_loader = load_dataset(transform=transform, batch_size=batch_size)
 
 
 generator_model = Generator(channel_noise=noise_dim, image_channels=channels_dim)
@@ -114,12 +104,8 @@ for epoch in range(num_epochs):
         )
 
         with torch.no_grad():
-
             batches_done = epoch * len(data_loader) + batch_idx
-            if batches_done % 30 == 0:
-                save_image(
-                    generated_image.data[:25],
-                    f"{results_path}/images/{batches_done}.png",
-                    nrow=5,
-                    normalize=True,
-                )
+            save_batch_images(
+                batches_done=batches_done,
+                generated_image=generated_image,
+            )
